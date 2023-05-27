@@ -10,8 +10,6 @@ import javax.persistence.PersistenceContext;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 @SpringBootTest
 @Transactional
 @Rollback(value = false)
@@ -28,14 +26,14 @@ class MemberTest {
         em.persist(teamB);
 
         Member member1 = new Member("Kim", 10, teamA);
-        Member member2 = new Member("bruno", 20, teamA);
-        Member member3 = new Member("KDB", 30, teamB);
-        Member member4 = new Member("HOLLAND", 40, teamB);
+        Member member12 = new Member("bruno", 20, teamA);
+        Member member13 = new Member("KDB", 30, teamB);
+        Member member14 = new Member("HOLLAND", 40, teamB);
 
         em.persist(member1);
-        em.persist(member2);
-        em.persist(member3);
-        em.persist(member4);
+        em.persist(member12);
+        em.persist(member13);
+        em.persist(member14);
 
         //초기화
         em.flush();
