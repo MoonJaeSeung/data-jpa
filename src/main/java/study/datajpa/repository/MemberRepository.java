@@ -1,5 +1,8 @@
 package study.datajpa.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -15,10 +18,11 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
 
     List<Member> findTop3HelloaBy();
 
-//    @Query(name = "Member.findByUsername")
+    //    @Query(name = "Member.findByUsername")
     List<Member> findByUsername(@Param("username") String username);
 
-    @Query("select m from Member m where m.username =:username and m.age = :age") //로딩시점에 파싱을 해본다
+    @Query("select m from Member m where m.username =:username and m.age = :age")
+        //로딩시점에 파싱을 해본다
     List<Member> findUser(@Param("username") String username, @Param("age") int age);
 
     @Query("select m.username from Member m")
@@ -31,7 +35,17 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     List<Member> findByNames(@Param("names") List<String> names);
 
     List<Member> findListaByUsername(String username); //컬렉션
+
     Member findMemberByUsername(String username); //단건
+
     Optional<Member> findOptionalByUsername(String username); //단건 Optional
 
+    @Query(value = "select m from Member m left join m.team t"
+
+    )
+    Page<Member> findByAge(int age, Pageable pageable);
+
 }
+
+
+//countQuery= "select count(m.username) from Member m"
