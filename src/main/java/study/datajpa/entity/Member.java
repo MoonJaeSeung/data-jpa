@@ -40,6 +40,7 @@ public class Member extends BaseEntity{
     }
 
     public Member(String memberA) {
+        this.username = memberA;
     }
 
     public void changeTeam(Team team){
