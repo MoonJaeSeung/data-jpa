@@ -1,5 +1,6 @@
 package study.datajpa.repository;
 
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,6 +14,8 @@ import study.datajpa.dto.MemberDto;
 import study.datajpa.entity.Member;
 import study.datajpa.entity.Team;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import java.util.Arrays;
 import java.util.List;
 
@@ -27,9 +30,11 @@ class MemberRepositoryTest {
     MemberRepository memberRepository;
     @Autowired
     TeamRepository teamRepository;
+    @PersistenceContext
+    EntityManager em;
 
     @Test
-    public void testMember(){
+    public void testMember() {
         System.out.println("memberRepository. = " + memberRepository.getClass());
         Member member = new Member("씨발년아");
         Member savedMember = memberRepository.save(member);
@@ -42,7 +47,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void basicCRUD(){
+    public void basicCRUD() {
         Member member = new Member("이강인");
         Member member12 = new Member("김민재");
         memberRepository.save(member);
@@ -87,12 +92,12 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void findHelloBy(){
+    public void findHelloBy() {
         List<Member> helloBy = memberRepository.findTop3HelloaBy();
     }
 
     @Test
-    public void testNamedQuery(){
+    public void testNamedQuery() {
         Member m1 = new Member("김민재", 10);
         Member m2 = new Member("이강인", 20);
 
@@ -105,20 +110,20 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void testQuery(){
+    public void testQuery() {
         Member m1 = new Member("김민재", 10);
         Member m2 = new Member("이강인", 20);
 
         memberRepository.save(m1);
         memberRepository.save(m2);
 
-        List<Member> result = memberRepository.findUser("김민재",10);
+        List<Member> result = memberRepository.findUser("김민재", 10);
         Member findMember = result.get(0);
         assertThat(findMember).isEqualTo(m1);
     }
 
     @Test
-    public void findUsernameList(){
+    public void findUsernameList() {
         Member m1 = new Member("김민재", 10);
         Member m2 = new Member("이강인", 20);
 
@@ -132,7 +137,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void findMemberDto(){
+    public void findMemberDto() {
         Team team = new Team("manU");
         teamRepository.save(team);
 
@@ -147,7 +152,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void findByNames(){
+    public void findByNames() {
         Member m1 = new Member("김민재", 10);
         Member m2 = new Member("이강인", 20);
 
@@ -162,7 +167,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void returnType(){
+    public void returnType() {
         Member m1 = new Member("김민재", 10);
         Member m2 = new Member("이강인", 20);
 
@@ -171,13 +176,12 @@ class MemberRepositoryTest {
 
         Member 김민재 = memberRepository.findMemberByUsername("씨발련아");
         System.out.println("김민재 = " + 김민재);
-        
-        
-        
+
+
     }
 
     @Test
-    public void paging(){
+    public void paging() {
         //given
         memberRepository.save(new Member("member1", 10));
         memberRepository.save(new Member("member2", 10));
@@ -191,6 +195,9 @@ class MemberRepositoryTest {
         //when
         Page<Member> page = memberRepository.findByAge(age, pageRequest);
 
+        // 엔티티노출 피하기 위해 DTO로 변환해서 보내기
+        Page<MemberDto> map = page.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
+
         //then
         List<Member> content = page.getContent();
         long totalElements = page.getTotalElements();
@@ -201,6 +208,49 @@ class MemberRepositoryTest {
 //        assertThat(page.getTotalPages()).isEqualTo(2);
         assertThat(page.hasNext()).isTrue();
         assertThat(page.isFirst()).isTrue();
-
     }
+
+    @Test
+    public void bulkUpdate() {
+        memberRepository.save(new Member("member1", 10));
+        memberRepository.save(new Member("member2", 19));
+        memberRepository.save(new Member("member3", 20));
+        memberRepository.save(new Member("member4", 22));
+        memberRepository.save(new Member("member5", 43));
+
+        //when
+        int resultCount = memberRepository.bulkAgePlus(20);
+//        em.flush();
+        em.clear();
+
+        //then
+        List<Member> result = memberRepository.findByUsername("member5");
+        Member member5 = result.get(0);
+        System.out.println("member5 = " + member5);
+    }
+
+    @Test
+    public void findMemberLazy() throws Exception {
+        //given
+        //member1 -> teamA
+        //member2 -> teamB
+        Team teamA = new Team("teamA");
+        Team teamB = new Team("teamB");
+        teamRepository.save(teamA);
+        teamRepository.save(teamB);
+        memberRepository.save(new Member("member1", 10, teamA));
+        memberRepository.save(new Member("member2", 20, teamB));
+        em.flush();
+        em.clear();
+        //when
+        List<Member> members = memberRepository.findMemberFetchJoin();
+        //then
+        for (Member member : members) {
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member.teamClass = " + member.getTeam().getClass());
+            System.out.println("member = " + member.getTeam().getName());
+        }
+    }
+
+
 }
