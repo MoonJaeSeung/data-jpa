@@ -243,13 +243,43 @@ class MemberRepositoryTest {
         em.flush();
         em.clear();
         //when
-        List<Member> members = memberRepository.findMemberFetchJoin();
+        List<Member> members = memberRepository.findAll();
         //then
         for (Member member : members) {
             System.out.println("member = " + member.getUsername());
             System.out.println("member.teamClass = " + member.getTeam().getClass());
             System.out.println("member = " + member.getTeam().getName());
         }
+    }
+
+    @Test
+    public void queryHint(){
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        //when
+        Member findMember = memberRepository.findReadOnlyByUsername("member1"); //가져오는 순간 변경감지를 위해 원본과 새로운 파일로 분리
+        findMember.setUsername("member2"); //스냅샷을 안만들기에 무시 된다.
+
+        em.flush();
+
+    }
+
+    @Test
+    public void lock(){
+        Member member1 = new Member("member1", 10);
+        memberRepository.save(member1);
+        em.flush();
+        em.clear();
+
+        //when
+        List<Member> result = memberRepository.findLockByUsername("member1");
+
+
+        em.flush();
+
     }
 
 
