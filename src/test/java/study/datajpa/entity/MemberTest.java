@@ -56,6 +56,37 @@ class MemberTest {
     }
 
     @Test
+    public void testTeam(){
+
+        Team teamA = new Team("ManU");
+        Team teamB = new Team("ManCity");
+        em.persist(teamA);
+        em.persist(teamB);
+
+        Member member1 = new Member("Kim", 10, teamA);
+        Member member12 = new Member("bruno", 20, teamA);
+        Member member13 = new Member("KDB", 30, teamB);
+        Member member14 = new Member("HOLLAND", 40, teamB);
+
+        em.persist(member1);
+        em.persist(member12);
+        em.persist(member13);
+        em.persist(member14);
+
+        //초기화
+        em.flush();
+        em.clear();
+
+
+        List<Team> temas = em.createQuery("select t from Team t", Team.class)
+                .getResultList();
+
+        for (Team team : temas) {
+            System.out.println("team = " + team);
+        }
+    }
+
+    @Test
     public void JpaEventBaseEntity() throws InterruptedException {
         //given
         Member member = new Member("member1");

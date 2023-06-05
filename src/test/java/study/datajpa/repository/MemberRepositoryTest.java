@@ -30,12 +30,13 @@ class MemberRepositoryTest {
     @PersistenceContext
     EntityManager em;
 
-    @Autowired MemberQueryRepository memberQueryRepository;
+    @Autowired
+    MemberQueryRepository memberQueryRepository;
 
     @Test
     public void testMember() {
         System.out.println("memberRepository. = " + memberRepository.getClass());
-        Member member = new Member("씨발년아");
+        Member member = new Member("kim");
         Member savedMember = memberRepository.save(member);
 
         Member findMember = memberRepository.findById(savedMember.getId()).get();//optional은 있을수도 있고 없을 수도 있는 원통
@@ -105,7 +106,7 @@ class MemberRepositoryTest {
 
         List<Member> result = memberRepository.findByUsername("김민재");
         Member findMember = result.get(0);
-        assertThat(findMember).isEqualTo(m1);
+        Assertions.assertThat(findMember).isEqualTo(m1);
     }
 
     @Test
@@ -173,7 +174,7 @@ class MemberRepositoryTest {
         memberRepository.save(m1);
         memberRepository.save(m2);
 
-        Member 김민재 = memberRepository.findMemberByUsername("씨발련아");
+        Member 김민재 = memberRepository.findMemberByUsername("김민재");
         System.out.println("김민재 = " + 김민재);
 
 
@@ -252,7 +253,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void queryHint(){
+    public void queryHint() {
         Member member1 = new Member("member1", 10);
         memberRepository.save(member1);
         em.flush();
@@ -267,7 +268,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void lock(){
+    public void lock() {
         Member member1 = new Member("member1", 10);
         memberRepository.save(member1);
         em.flush();
@@ -278,12 +279,12 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void callCustom(){
+    public void callCustom() {
         List<Member> result = memberRepository.findMemberCustom();
     }
 
     @Test
-    public void queryByExample(){
+    public void queryByExample() {
         //given
         Team teamA = new Team("teamA");
         em.persist(teamA);
@@ -305,7 +306,7 @@ class MemberRepositoryTest {
         ExampleMatcher matcher = ExampleMatcher.matching()
                 .withIgnorePaths("age");
 
-        Example<Member> example = Example.of(member,matcher);
+        Example<Member> example = Example.of(member, matcher);
 
         List<Member> result = memberRepository.findAll(example);
 
@@ -313,7 +314,7 @@ class MemberRepositoryTest {
     }
 
     @Test
-    public void projections(){
+    public void projections() {
         //given
         Team teamA = new Team("teamA");
         em.persist(teamA);
@@ -334,6 +335,29 @@ class MemberRepositoryTest {
             System.out.println("username = " + username);
             String teamName = nestedClosedProjections.getTeam().getName();
             System.out.println("teamName = " + teamName);
+        }
+    }
+
+    @Test
+    public void nativeQuery() {
+        //given
+        Team teamA = new Team("teamA");
+        em.persist(teamA);
+
+        Member m1 = new Member("m1", 0, teamA);
+        Member m2 = new Member("m2", 0, teamA);
+        em.persist(m1);
+        em.persist(m2);
+
+        em.flush();
+        em.clear();
+
+        //when
+        Page<MemberProjection> result = memberRepository.findByNativeProjection(PageRequest.of(0, 10));
+        List<MemberProjection> content = result.getContent();
+        for (MemberProjection memberProjection : content) {
+            System.out.println("memberProjection.getUsername() = " + memberProjection.getUsername());
+            System.out.println("memberProjection.getTeamName() = " + memberProjection.getTeamName());
         }
     }
 
